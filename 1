@@ -2,3 +2,36 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import models
+
+# Check GPU availability
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Load Pretrained Model
+model = models.resnet18(pretrained=True).to(device)
+
+# Define loss function and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+# Enable Automatic Mixed Precision (AMP)
+scaler = torch.cuda.amp.GradScaler()
+
+# Dummy data (for example purpose)
+inputs = torch.randn(16, 3, 224, 224).to(device)
+labels = torch.randint(0, 1000, (16,)).to(device)
+
+# Training Loop with Mixed Precision
+model.train()
+for epoch in range(2):  # Just running for 2 epochs for demonstration
+    optimizer.zero_grad()
+    
+    with torch.cuda.amp.autocast():
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+    
+    # Scaler to prevent underflow
+    scaler.scale(loss).backward()
+    scaler.step(optimizer)
+    scaler.update()
+    
+    print(f"Epoch [{epoch+1}] Loss: {loss.item()}")
