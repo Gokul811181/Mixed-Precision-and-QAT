@@ -5,3 +5,9 @@ Benefits of Mixed Precision Training:
 ->Speeds up training (2-3x on modern GPUs).
 ->Reduces memory consumption.
 ->Helps train larger models with the same hardware.
+
+Benefits of Quantization Aware Training (QAT):
+->Reduces model size (up to 75%).
+->Improves inference speed (2-4x on CPUs).
+->Maintains accuracy close to FP32.
+
