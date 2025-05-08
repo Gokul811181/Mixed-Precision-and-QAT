@@ -36,7 +36,50 @@ for epoch in range(2):  # Just running for 2 epochs for demonstration
     
     print(f"Epoch [{epoch+1}] Loss: {loss.item()}")
 
+import torch.quantization
+from torch.quantization import QuantStub, DeQuantStub
+
+# Modify the model to include Quant and DeQuant Stubs
+class QuantizedResNet18(nn.Module):
+    def __init__(self):
+        super(QuantizedResNet18, self).__init__()
+        self.quant = QuantStub()
+        self.model = models.resnet18(pretrained=True)
+        self.dequant = DeQuantStub()
+
+    def forward(self, x):
+        x = self.quant(x)  # Quantization
+        x = self.model(x)
+        x = self.dequant(x)  # Dequantization
+        return x
+
+# Initialize quantized model
+qat_model = QuantizedResNet18().to(device)
+qat_model.train()
+qat_model.qconfig = torch.quantization.get_default_qat_qconfig("fbgemm")
+
+# Prepare for QAT
+qat_model = torch.quantization.prepare_qat(qat_model)
+
+# Define optimizer
+optimizer = optim.Adam(qat_model.parameters(), lr=0.001)
+
+
+for epoch in range(2):  # Training for 2 epochs
+    optimizer.zero_grad()
+    outputs = qat_model(inputs)
+    loss = criterion(outputs, labels)
     
+    loss.backward()
+    optimizer.step()
     
+    print(f"Epoch [{epoch+1}] Loss: {loss.item()}")
+
+qat_model.eval()
+quantized_model = torch.quantization.convert(qat_model)
+
+# Save the quantized model
+torch.save(quantized_model.state_dict(), "quantized_resnet18.pth")
+print("Quantized model saved!")
 
     
