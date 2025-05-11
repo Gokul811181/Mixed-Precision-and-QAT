@@ -11,3 +11,7 @@ Benefits of Quantization Aware Training (QAT):
 ->Improves inference speed (2-4x on CPUs).
 ->Maintains accuracy close to FP32.
 
+
+
+
+
